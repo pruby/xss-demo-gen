@@ -1,0 +1,65 @@
+<html>
+  <head>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <script src="gen.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.min.js" integrity="sha256-iaqfO5ue0VbSGcEiQn+OeXxnxAMK2+QgHXIDA5bWtGI=" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <div class="container container-fluid">
+      <h1>Better XSS Demo Payload Generator</h1>
+      <p>This tool is for demonstrating impact of XSS within companies and by penetration testers.
+      Use at your own risk and test thoroughly.</p>
+      <p>XSS Demos using alert(1) don't give the client any picture of what XSS can actually do.
+      Create better ones which respond to the user's login state and alter
+      their behaviour to attack logged in users separately from non-logged in users.</p>
+    </div>
+    <div class="container container-fluid">
+        <h3>First, find a page which tells us if we're logged in...</h3>
+        <p>This page must succeed (200) or redirect (30x) whether or not we're logged in.
+        Text content on the page must indicate which of these occurred.</p>
+        <div class="form-group">
+          <label for="loginCheckURL">Login Check Page</label>
+          <input type="text" class="form-control" id="loginCheckURL" placeholder="/my/dashboard" aria-describedby="loginCheckURLHelp">
+          <small id="loginCheckURLHelp" class="form-text text-muted">A page to fetch to check whether the user is logged in.</small>
+        </div>
+        <div class="form-group">
+          <label for="loginCheckPattern">Login Check Text</label>
+          <input type="text" class="form-control" id="loginCheckPattern" placeholder="welcome" aria-describedby="loginCheckPatternHelp">
+          <small id="loginCheckPatternHelp" class="form-text text-muted">Text which is present on the login check page if and only if the user is logged in.</small>
+        </div>
+        <h3>If not logged in...</h3>
+        <p>Our most likely attack against users who are not signed in is to prompt them to do so.
+        If they log in to the site while we can run scripts in its context, we can capture the credentials.</p>
+        <p>Note that this demo does not automatically continue with the logged in steps - it either attempts
+        credential capture or scrapes the current account, not both.</p>
+        <div class="form-group">
+          <label for="loginURL">Login Page</label>
+          <input type="text" class="form-control" id="loginURL" placeholder="/login" aria-describedby="loginURLHelp">
+          <small id="loginURLHelp" class="form-text text-muted">Where the user will be taken if not logged in.</small>
+        </div>
+        <h3>If logged in...</h3>
+        <p>If the user is already logged in, we may be able to take sensitive information without needing to
+        prompt. If you really don't want this to happen, you could just force the login check to fail...</p>
+        <div class="form-group">
+          <label for="fetchResources">Resources to Fetch...</label>
+          <textarea class="form-control" id="fetchResources" placeholder="/my/profile" aria-describedby="fetchResourcesHelp"></textarea>
+          <small id="fetchResourcesHelp" class="form-text text-muted">If the user is logged in, fetch these pages (one per line).</small>
+        </div>
+        <h3>Send it all to...</h3>
+        <div class="form-group">
+          <label for="destURL">Destination URL</label>
+          <input type="text" class="form-control" id="destURL" placeholder="https://..." aria-describedby="destURLHelp">
+          <small id="destURLHelp" class="form-text text-muted">Where form contents from the login page or pages will be sent...</small>
+        </div>
+        <button id="gimme" type="button" class="btn btn-primary">Gimme</button>
+      <div style="display: none;" id="result-div">
+        <h2>Copy the following code...</h2>
+        <p>You'll have to host this on your own server - I don't want to field complains from your clients.</p>
+        <pre id="result"></pre>
+      </div>
+    </div>
+  </body>
+</html>

