@@ -6,6 +6,7 @@
 
   var script = document.createElement("script");
   script.src = 'https://code.jquery.com/jquery-3.2.1.min.js';
+  script.integrity = 'sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f';
   script.type = 'text/javascript';
   script.onload = function() {
     (function($) {
