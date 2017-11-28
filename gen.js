@@ -25,6 +25,7 @@ $(function() {
       exfilURL: JSON.stringify($('#destURL').val())
     }
     $('#result').text(Mustache.render(template, view));
+    $('#result-div').show();
     return false;
   });
 })
